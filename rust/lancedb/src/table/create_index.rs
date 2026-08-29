@@ -156,6 +156,9 @@ impl NativeTable {
             .train(opts.train)
             .replace(opts.replace);
 
+        if let Some(index_uuid) = opts.index_uuid {
+            builder = builder.index_uuid(index_uuid);
+        }
         if let Some(name) = opts.name {
             builder = builder.name(name);
         }

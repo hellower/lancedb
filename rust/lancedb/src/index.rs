@@ -189,6 +189,7 @@ pub struct IndexBuilder {
     pub(crate) index: Index,
     pub(crate) columns: Vec<String>,
     pub(crate) replace: bool,
+    pub(crate) index_uuid: Option<uuid::Uuid>,
     pub(crate) wait_timeout: Option<Duration>,
     pub(crate) train: bool,
     pub(crate) name: Option<String>,
@@ -201,6 +202,7 @@ impl IndexBuilder {
             index,
             columns,
             replace: true,
+            index_uuid: None,
             train: true,
             wait_timeout: None,
             name: None,
@@ -214,6 +216,12 @@ impl IndexBuilder {
     /// that index is out of date.
     pub fn replace(mut self, v: bool) -> Self {
         self.replace = v;
+        self
+    }
+
+    /// Use a caller-selected UUID for the created index.
+    pub fn index_uuid(mut self, uuid: uuid::Uuid) -> Self {
+        self.index_uuid = Some(uuid);
         self
     }
 
