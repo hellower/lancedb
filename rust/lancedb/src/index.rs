@@ -220,6 +220,37 @@ impl IndexBuilder {
     }
 
     /// Use a caller-selected UUID for the created index.
+    ///
+    /// This is supported for native LanceDB tables. Remote tables currently
+    /// reject caller-selected UUIDs because the remote create-index protocol
+    /// does not carry index UUIDs.
+    ///
+    /// The UUID must not already belong to a committed index on the table. If
+    /// the UUID is already in use, index creation fails before building the new
+    /// index. This check is independent of [`Self::replace`]: `replace(true)`
+    /// may replace an index name, but it may not reuse another committed
+    /// index's UUID.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use lancedb::{connect, index::{Index, scalar::BTreeIndexBuilder}};
+    /// use uuid::Uuid;
+    ///
+    /// # async fn index_uuid_example() -> lancedb::Result<()> {
+    /// let db = connect("data/sample-lancedb").execute().await?;
+    /// let table = db.open_table("my_table").execute().await?;
+    /// let index_uuid = Uuid::new_v4();
+    ///
+    /// table
+    ///     .create_index(&["user_id"], Index::BTree(BTreeIndexBuilder::default()))
+    ///     .name("user_id_btree_index".to_string())
+    ///     .index_uuid(index_uuid)
+    ///     .execute()
+    ///     .await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn index_uuid(mut self, uuid: uuid::Uuid) -> Self {
         self.index_uuid = Some(uuid);
         self

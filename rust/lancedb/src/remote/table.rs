@@ -491,6 +491,12 @@ impl<S: HttpSend> std::fmt::Debug for RemoteTable<S> {
 impl<S: HttpSend> RemoteTable<S> {
     async fn submit_create_index(&self, mut index: IndexBuilder) -> Result<Option<String>> {
         self.check_mutable().await?;
+        if index.index_uuid.is_some() {
+            return Err(Error::NotSupported {
+                message: "caller-selected index UUIDs are only supported for native LanceDB tables"
+                    .into(),
+            });
+        }
         let route = if index.replace {
             "create_index"
         } else {
@@ -6118,6 +6124,30 @@ mod tests {
             .execute()
             .await
             .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_create_index_rejects_remote_index_uuid() {
+        let request_sent = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let sent = request_sent.clone();
+        let table = Table::new_with_handler("my_table", move |_request| {
+            sent.store(true, std::sync::atomic::Ordering::SeqCst);
+            http::Response::builder()
+                .status(500)
+                .body("unexpected request".to_string())
+                .unwrap()
+        });
+
+        let err = table
+            .create_index(&["a"], Index::BTree(Default::default()))
+            .index_uuid(uuid::Uuid::new_v4())
+            .execute()
+            .await
+            .unwrap_err();
+
+        assert!(matches!(err, Error::NotSupported { .. }));
+        assert!(err.to_string().contains("native LanceDB tables"));
+        assert!(!request_sent.load(std::sync::atomic::Ordering::SeqCst));
     }
 
     #[tokio::test]

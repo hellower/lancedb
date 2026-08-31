@@ -151,6 +151,19 @@ impl NativeTable {
         let (column, lance_idx_params, index_type) = prepared;
         let mut dataset = (*self.dataset.get().await?).clone();
         let columns = [column.as_str()];
+
+        if let Some(index_uuid) = opts.index_uuid {
+            let indices = dataset.load_indices().await?;
+            if let Some(existing_index) = indices.iter().find(|index| index.uuid == index_uuid) {
+                return Err(Error::InvalidInput {
+                    message: format!(
+                        "Index UUID '{}' is already used by index '{}'",
+                        index_uuid, existing_index.name
+                    ),
+                });
+            }
+        }
+
         let mut builder = dataset
             .create_index_builder(&columns, index_type, lance_idx_params.as_ref())
             .train(opts.train)
@@ -1068,6 +1081,67 @@ mod tests {
         let stats = table.index_stats(index_name).await.unwrap().unwrap();
         assert_eq!(stats.num_indexed_rows, 1);
         assert_eq!(stats.num_unindexed_rows, 1);
+    }
+
+    #[tokio::test]
+    async fn test_create_index_uses_selected_uuid() {
+        let conn = connect("memory://").execute().await.unwrap();
+        let batch = record_batch!(("i", Int32, [1])).unwrap();
+        let table = conn
+            .create_table("my_table", batch)
+            .execute()
+            .await
+            .unwrap();
+        let index_uuid = uuid::Uuid::new_v4();
+
+        table
+            .create_index(&["i"], Index::BTree(BTreeIndexBuilder::default()))
+            .name("i_idx".to_string())
+            .index_uuid(index_uuid)
+            .execute()
+            .await
+            .unwrap();
+
+        let index_configs = table.list_indices().await.unwrap();
+        assert_eq!(index_configs.len(), 1);
+        let index = index_configs.into_iter().next().unwrap();
+        assert_eq!(index.name, "i_idx");
+        assert_eq!(index.index_uuid, Some(index_uuid.to_string()));
+    }
+
+    #[tokio::test]
+    async fn test_create_index_rejects_selected_uuid_collision() {
+        let conn = connect("memory://").execute().await.unwrap();
+        let batch = record_batch!(("a", Int32, [1]), ("b", Int32, [2])).unwrap();
+        let table = conn
+            .create_table("my_table", batch)
+            .execute()
+            .await
+            .unwrap();
+        let index_uuid = uuid::Uuid::new_v4();
+
+        table
+            .create_index(&["a"], Index::BTree(BTreeIndexBuilder::default()))
+            .name("a_idx".to_string())
+            .index_uuid(index_uuid)
+            .execute()
+            .await
+            .unwrap();
+
+        let err = table
+            .create_index(&["b"], Index::BTree(BTreeIndexBuilder::default()))
+            .name("b_idx".to_string())
+            .index_uuid(index_uuid)
+            .execute()
+            .await
+            .unwrap_err();
+        assert!(err.to_string().contains("already used by index 'a_idx'"));
+
+        let index_configs = table.list_indices().await.unwrap();
+        assert_eq!(index_configs.len(), 1);
+        let index = index_configs.into_iter().next().unwrap();
+        assert_eq!(index.name, "a_idx");
+        assert_eq!(index.index_uuid, Some(index_uuid.to_string()));
     }
 
     #[tokio::test]
