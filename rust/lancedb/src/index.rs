@@ -225,11 +225,12 @@ impl IndexBuilder {
     /// reject caller-selected UUIDs because the remote create-index protocol
     /// does not carry index UUIDs.
     ///
-    /// The UUID must not already belong to a committed index on the table. If
-    /// the UUID is already in use, index creation fails before building the new
-    /// index. This check is independent of [`Self::replace`]: `replace(true)`
-    /// may replace an index name, but it may not reuse another committed
-    /// index's UUID.
+    /// The UUID must not already belong to a surviving committed index on the
+    /// table. If the UUID is already in use by an unrelated index, index
+    /// creation fails before building the new index. `replace(true)` may
+    /// replace an index with the same name, and may reuse that index's UUID
+    /// only when the replaced index is removed by the same create-index
+    /// transaction.
     ///
     /// # Examples
     ///

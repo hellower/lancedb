@@ -151,16 +151,30 @@ impl NativeTable {
         let (column, lance_idx_params, index_type) = prepared;
         let mut dataset = (*self.dataset.get().await?).clone();
         let columns = [column.as_str()];
+        let index_name = opts
+            .name
+            .as_deref()
+            .map(str::to_owned)
+            .unwrap_or_else(|| format!("{}_idx", column));
 
         if let Some(index_uuid) = opts.index_uuid {
             let indices = dataset.load_indices().await?;
             if let Some(existing_index) = indices.iter().find(|index| index.uuid == index_uuid) {
-                return Err(Error::InvalidInput {
-                    message: format!(
-                        "Index UUID '{}' is already used by index '{}'",
-                        index_uuid, existing_index.name
-                    ),
-                });
+                let is_matching_empty_reservation = existing_index.name == index_name
+                    && existing_index
+                        .fragment_bitmap
+                        .as_ref()
+                        .is_some_and(|fragments| fragments.is_empty());
+                // Let Lance's name/replace handling classify retries of the
+                // caller's own empty reservation.
+                if !is_matching_empty_reservation {
+                    return Err(Error::InvalidInput {
+                        message: format!(
+                            "Index UUID '{}' is already used by index '{}'",
+                            index_uuid, existing_index.name
+                        ),
+                    });
+                }
             }
         }
 
@@ -1141,6 +1155,46 @@ mod tests {
         assert_eq!(index_configs.len(), 1);
         let index = index_configs.into_iter().next().unwrap();
         assert_eq!(index.name, "a_idx");
+        assert_eq!(index.index_uuid, Some(index_uuid.to_string()));
+    }
+
+    #[tokio::test]
+    async fn test_create_index_allows_selected_uuid_empty_reservation_retry() {
+        let conn = connect("memory://").execute().await.unwrap();
+        let batch = record_batch!(("i", Int32, [1])).unwrap();
+        let table = conn
+            .create_table("my_table", batch)
+            .execute()
+            .await
+            .unwrap();
+        let index_uuid = uuid::Uuid::new_v4();
+
+        table
+            .create_index(&["i"], Index::BTree(BTreeIndexBuilder::default()))
+            .name("i_idx".to_string())
+            .index_uuid(index_uuid)
+            .train(false)
+            .replace(false)
+            .execute()
+            .await
+            .unwrap();
+
+        let err = table
+            .create_index(&["i"], Index::BTree(BTreeIndexBuilder::default()))
+            .name("i_idx".to_string())
+            .index_uuid(index_uuid)
+            .train(false)
+            .replace(false)
+            .execute()
+            .await
+            .unwrap_err();
+        assert!(err.to_string().contains("already exists"));
+        assert!(!err.to_string().contains("already used by index"));
+
+        let index_configs = table.list_indices().await.unwrap();
+        assert_eq!(index_configs.len(), 1);
+        let index = index_configs.into_iter().next().unwrap();
+        assert_eq!(index.name, "i_idx");
         assert_eq!(index.index_uuid, Some(index_uuid.to_string()));
     }
 
