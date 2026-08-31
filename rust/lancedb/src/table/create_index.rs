@@ -473,6 +473,7 @@ mod tests {
     use arrow_data::ArrayDataBuilder;
     use arrow_schema::{DataType, Field, Schema};
     use futures::TryStreamExt;
+    use lance::index::DatasetIndexExt;
     use tempfile::tempdir;
 
     use crate::connect;
@@ -1158,6 +1159,85 @@ mod tests {
         let index = index_configs.into_iter().next().unwrap();
         assert_eq!(index.name, "a_idx");
         assert_eq!(index.index_uuid, Some(index_uuid.to_string()));
+    }
+
+    #[tokio::test]
+    async fn test_create_index_rejects_hidden_uuid_collision_before_writing() {
+        use lance::dataset::transaction::{Operation, Transaction};
+        use lance::dataset::{CommitBuilder, WriteDestination};
+
+        let conn = connect("memory://").execute().await.unwrap();
+        let batch = record_batch!(("a", Int32, [1, 2, 3])).unwrap();
+        let table = conn
+            .create_table("my_table", batch)
+            .execute()
+            .await
+            .unwrap();
+
+        table
+            .create_index(&["a"], Index::BTree(BTreeIndexBuilder::default()))
+            .name("a_idx".to_string())
+            .execute()
+            .await
+            .unwrap();
+
+        let native = table.as_native().unwrap();
+        let mut dataset = (*native.dataset.get().await.unwrap()).clone();
+        let original = dataset.load_indices().await.unwrap()[0].clone();
+        let mut hidden = original.clone();
+        hidden.index_version += 1;
+
+        let version = dataset.manifest().version;
+        dataset = CommitBuilder::new(WriteDestination::Dataset(Arc::new(dataset)))
+            .execute(Transaction::new(
+                version,
+                Operation::CreateIndex {
+                    new_indices: vec![hidden.clone()],
+                    removed_indices: vec![original.clone()],
+                },
+                None,
+            ))
+            .await
+            .unwrap();
+        native.dataset.update(dataset);
+        assert!(table.list_indices().await.unwrap().is_empty());
+
+        let err = table
+            .create_index(&["a"], Index::BTree(BTreeIndexBuilder::default()))
+            .name("other_idx".to_string())
+            .index_uuid(original.uuid)
+            .train(false)
+            .replace(false)
+            .execute()
+            .await
+            .unwrap_err();
+        assert!(err.to_string().contains("already used by index 'a_idx'"));
+
+        let dataset = (*native.dataset.get().await.unwrap()).clone();
+        let version = dataset.manifest().version;
+        let dataset = CommitBuilder::new(WriteDestination::Dataset(Arc::new(dataset)))
+            .execute(Transaction::new(
+                version,
+                Operation::CreateIndex {
+                    new_indices: vec![original],
+                    removed_indices: vec![hidden],
+                },
+                None,
+            ))
+            .await
+            .unwrap();
+        native.dataset.update(dataset);
+
+        let batches = table
+            .query()
+            .only_if("a = 1")
+            .execute()
+            .await
+            .unwrap()
+            .try_collect::<Vec<_>>()
+            .await
+            .unwrap();
+        assert_eq!(batches[0].num_rows(), 1);
     }
 
     #[tokio::test]
