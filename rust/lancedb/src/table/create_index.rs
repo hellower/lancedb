@@ -151,23 +151,17 @@ impl NativeTable {
         let (column, lance_idx_params, index_type) = prepared;
         let mut dataset = (*self.dataset.get().await?).clone();
         let columns = [column.as_str()];
-        let index_name = opts
-            .name
-            .as_deref()
-            .map(str::to_owned)
-            .unwrap_or_else(|| format!("{}_idx", column));
 
         if let Some(index_uuid) = opts.index_uuid {
             let indices = dataset.load_indices().await?;
             if let Some(existing_index) = indices.iter().find(|index| index.uuid == index_uuid) {
-                let is_matching_empty_reservation = existing_index.name == index_name
-                    && existing_index
-                        .fragment_bitmap
-                        .as_ref()
-                        .is_some_and(|fragments| fragments.is_empty());
-                // Let Lance's name/replace handling classify retries of the
-                // caller's own empty reservation.
-                if !is_matching_empty_reservation {
+                let is_empty_reservation = existing_index
+                    .fragment_bitmap
+                    .as_ref()
+                    .is_some_and(|fragments| fragments.is_empty());
+                // Let Lance's name/replace handling classify idempotent
+                // retries of an empty reservation.
+                if !is_empty_reservation {
                     return Err(Error::InvalidInput {
                         message: format!(
                             "Index UUID '{}' is already used by index '{}'",
@@ -175,6 +169,11 @@ impl NativeTable {
                         ),
                     });
                 }
+            }
+            if opts.train {
+                return Err(Error::InvalidInput {
+                    message: "index_uuid is only supported when train(false) creates an empty index reservation".to_string(),
+                });
             }
         }
 
@@ -1112,6 +1111,7 @@ mod tests {
             .create_index(&["i"], Index::BTree(BTreeIndexBuilder::default()))
             .name("i_idx".to_string())
             .index_uuid(index_uuid)
+            .train(false)
             .execute()
             .await
             .unwrap();
@@ -1138,6 +1138,7 @@ mod tests {
             .create_index(&["a"], Index::BTree(BTreeIndexBuilder::default()))
             .name("a_idx".to_string())
             .index_uuid(index_uuid)
+            .train(false)
             .execute()
             .await
             .unwrap();
@@ -1146,6 +1147,7 @@ mod tests {
             .create_index(&["b"], Index::BTree(BTreeIndexBuilder::default()))
             .name("b_idx".to_string())
             .index_uuid(index_uuid)
+            .train(false)
             .execute()
             .await
             .unwrap_err();
@@ -1156,6 +1158,28 @@ mod tests {
         let index = index_configs.into_iter().next().unwrap();
         assert_eq!(index.name, "a_idx");
         assert_eq!(index.index_uuid, Some(index_uuid.to_string()));
+    }
+
+    #[tokio::test]
+    async fn test_create_index_rejects_selected_uuid_trained_build() {
+        let conn = connect("memory://").execute().await.unwrap();
+        let batch = record_batch!(("i", Int32, [1])).unwrap();
+        let table = conn
+            .create_table("my_table", batch)
+            .execute()
+            .await
+            .unwrap();
+        let index_uuid = uuid::Uuid::new_v4();
+
+        let err = table
+            .create_index(&["i"], Index::BTree(BTreeIndexBuilder::default()))
+            .name("i_idx".to_string())
+            .index_uuid(index_uuid)
+            .execute()
+            .await
+            .unwrap_err();
+
+        assert!(err.to_string().contains("train(false)"));
     }
 
     #[tokio::test]
@@ -1196,6 +1220,52 @@ mod tests {
         let index = index_configs.into_iter().next().unwrap();
         assert_eq!(index.name, "i_idx");
         assert_eq!(index.index_uuid, Some(index_uuid.to_string()));
+    }
+
+    #[tokio::test]
+    async fn test_create_index_retries_default_list_element_fts_reservation() {
+        let conn = connect("memory://").execute().await.unwrap();
+        let mut values = ListBuilder::new(StringBuilder::new());
+        values.values().append_value("alpha");
+        values.append(true);
+        let values: ArrayRef = Arc::new(values.finish());
+        let schema = Arc::new(Schema::new(vec![Field::new(
+            "tags",
+            values.data_type().clone(),
+            false,
+        )]));
+        let batch = RecordBatch::try_new(schema, vec![values]).unwrap();
+        let table = conn
+            .create_table("my_table", batch)
+            .execute()
+            .await
+            .unwrap();
+        let index_uuid = uuid::Uuid::new_v4();
+        let params = || {
+            Index::FTS(
+                FtsIndexBuilder::default().document_granularity(DocumentGranularity::ListElement),
+            )
+        };
+
+        table
+            .create_index(&["tags"], params())
+            .index_uuid(index_uuid)
+            .train(false)
+            .replace(false)
+            .execute()
+            .await
+            .unwrap();
+
+        let err = table
+            .create_index(&["tags"], params())
+            .index_uuid(index_uuid)
+            .train(false)
+            .replace(false)
+            .execute()
+            .await
+            .unwrap_err();
+        assert!(err.to_string().contains("already exists"));
+        assert!(!err.to_string().contains("already used by index"));
     }
 
     #[tokio::test]

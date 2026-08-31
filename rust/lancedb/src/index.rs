@@ -219,18 +219,16 @@ impl IndexBuilder {
         self
     }
 
-    /// Use a caller-selected UUID for the created index.
+    /// Use a caller-selected UUID for an empty index reservation.
     ///
     /// This is supported for native LanceDB tables. Remote tables currently
     /// reject caller-selected UUIDs because the remote create-index protocol
     /// does not carry index UUIDs.
     ///
-    /// The UUID must not already belong to a surviving committed index on the
-    /// table. If the UUID is already in use by an unrelated index, index
-    /// creation fails before building the new index. `replace(true)` may
-    /// replace an index with the same name, and may reuse that index's UUID
-    /// only when the replaced index is removed by the same create-index
-    /// transaction.
+    /// The builder must also use [`Self::train(false)`]. Trained builds write
+    /// physical index files before commit and therefore cannot safely accept a
+    /// caller-selected storage UUID. If the UUID is already in use by a
+    /// non-empty index, index creation fails before building.
     ///
     /// # Examples
     ///
@@ -247,6 +245,7 @@ impl IndexBuilder {
     ///     .create_index(&["user_id"], Index::BTree(BTreeIndexBuilder::default()))
     ///     .name("user_id_btree_index".to_string())
     ///     .index_uuid(index_uuid)
+    ///     .train(false)
     ///     .execute()
     ///     .await?;
     /// # Ok(())
