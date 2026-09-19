@@ -1,97 +1,32 @@
-<a href="https://cloud.lancedb.com" target="_blank">
-  <img src="https://github.com/user-attachments/assets/92dad0a2-2a37-4ce1-b783-0d1b4f30a00c" alt="LanceDB Cloud Public Beta" width="100%" style="max-width: 100%;">
-</a>
-<div align="center">
+# hellower/lancedb
 
-[![LanceDB](docs/src/assets/hero-header.png)](https://lancedb.com)
-[![Website](https://img.shields.io/badge/-Website-100000?style=for-the-badge&labelColor=645cfb&color=645cfb)](https://lancedb.com/)
-[![Blog](https://img.shields.io/badge/Blog-100000?style=for-the-badge&labelColor=645cfb&color=645cfb)](https://blog.lancedb.com/)
-[![Discord](https://img.shields.io/badge/-Discord-100000?style=for-the-badge&logo=discord&logoColor=white&labelColor=645cfb&color=645cfb)](https://discord.gg/zMM32dvNtd)
-[![Twitter](https://img.shields.io/badge/-Twitter-100000?style=for-the-badge&logo=x&logoColor=white&labelColor=645cfb&color=645cfb)](https://twitter.com/lancedb)
-[![LinkedIn](https://img.shields.io/badge/-LinkedIn-100000?style=for-the-badge&logo=linkedin&logoColor=white&labelColor=645cfb&color=645cfb)](https://www.linkedin.com/company/lancedb/)
-
-
-<img src="docs/src/assets/lancedb.png" alt="LanceDB" width="50%">
-
-# **The Multimodal AI Lakehouse**
-
-[**How to Install** ](#how-to-install) ✦ [**Detailed Documentation**](https://docs.lancedb.com) ✦ [**Tutorials and Recipes**](https://github.com/lancedb/vectordb-recipes/tree/main) ✦  [**Contributors**](#contributors) 
-
-**The ultimate multimodal data platform for AI/ML applications.** 
-
-LanceDB is designed for fast, scalable, and production-ready vector search. It is built on top of the Lance columnar format. You can store, index, and search over petabytes of multimodal data and vectors with ease. 
-LanceDB is a central location where developers can build, train and analyze their AI workloads.
-
-</div>
-
-<br>
-
-## **Demo: Multimodal Search by Keyword, Vector or with SQL**
-<img max-width="750px" alt="LanceDB Multimodal Search" src="https://github.com/lancedb/lancedb/assets/917119/09c5afc5-7816-4687-bae4-f2ca194426ec">
-
-## **Star LanceDB to get updates!**
-
-<details>
-<summary>⭐ Click here ⭐  to see how fast we're growing!</summary>
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=lancedb/lancedb&theme=dark&type=Date">
-  <img width="100%" src="https://api.star-history.com/svg?repos=lancedb/lancedb&theme=dark&type=Date">
-</picture>
-</details>
-
-## **Key Features**:
-
-- **Fast Vector Search**: Search billions of vectors in milliseconds with state-of-the-art indexing.
-- **Comprehensive Search**: Support for vector similarity search, full-text search and SQL.
-- **Multimodal Support**: Store, query and filter vectors, metadata and multimodal data (text, images, videos, point clouds, and more).
-- **Advanced Features**: Zero-copy, automatic versioning, manage versions of your data without needing extra infrastructure. GPU support in building vector index.
-
-### **Products**:
-- **Open Source & Local**: 100% open source, runs locally or in your cloud. No vendor lock-in.
-- **Cloud and Enterprise**: Production-scale vector search with no servers to manage. Complete data sovereignty and security.
-
-### **Ecosystem**:
-- **Columnar Storage**: Built on the Lance columnar format for efficient storage and analytics.
-- **Seamless Integration**: Python, Node.js, Rust, and REST APIs for easy integration. Native Python and Javascript/Typescript support.
-- **Rich Ecosystem**: Integrations with [**LangChain** 🦜️🔗](https://python.langchain.com/docs/integrations/vectorstores/lancedb/), [**LlamaIndex** 🦙](https://gpt-index.readthedocs.io/en/latest/examples/vector_stores/LanceDBIndexDemo.html), Apache-Arrow, Pandas, Polars, DuckDB and more on the way.
-
-## **How to Install**:
-
-Follow the [Quickstart](https://docs.lancedb.com/quickstart) doc to set up LanceDB locally. 
-
-**API & SDK:** We also support Python, Typescript and Rust SDKs
-
-| Interface | Documentation |
-|-----------|---------------|
-| Python SDK | https://lancedb.github.io/lancedb/python/python/ |
-| Typescript SDK | https://lancedb.github.io/lancedb/js/globals/ |
-| Rust SDK | https://docs.rs/lancedb/latest/lancedb/index.html |
-| REST API | https://docs.lancedb.com/api-reference/rest |
-
-## **Join Us and Contribute**
-
-We welcome contributions from everyone! Whether you're a developer, researcher, or just someone who wants to help out. 
-
-If you have any suggestions or feature requests, please feel free to open an issue on GitHub or discuss it on our [**Discord**](https://discord.gg/G5DcmnZWKB) server.
-
-[**Check out the GitHub Issues**](https://github.com/lancedb/lancedb/issues) if you would like to work on the features that are planned for the future. If you have any suggestions or feature requests, please feel free to open an issue on GitHub. 
-
-## **Contributors**
-
-<a href="https://github.com/lancedb/lancedb/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=lancedb/lancedb" />
-</a>
-
-
-## **Stay in Touch With Us**
-<div align="center">
-
-</br>
-
-[![Website](https://img.shields.io/badge/-Website-100000?style=for-the-badge&labelColor=645cfb&color=645cfb)](https://lancedb.com/)
-[![Blog](https://img.shields.io/badge/Blog-100000?style=for-the-badge&labelColor=645cfb&color=645cfb)](https://blog.lancedb.com/)
-[![Discord](https://img.shields.io/badge/-Discord-100000?style=for-the-badge&logo=discord&logoColor=white&labelColor=645cfb&color=645cfb)](https://discord.gg/zMM32dvNtd)
-[![Twitter](https://img.shields.io/badge/-Twitter-100000?style=for-the-badge&logo=x&logoColor=white&labelColor=645cfb&color=645cfb)](https://twitter.com/lancedb)
-[![LinkedIn](https://img.shields.io/badge/-LinkedIn-100000?style=for-the-badge&logo=linkedin&logoColor=white&labelColor=645cfb&color=645cfb)](https://www.linkedin.com/company/lancedb/)
-
-</div>
+> [!CAUTION]
+> **`hellower/goosedb-lancedb-go`는 LanceDB를 upstream 태그 그대로가 아니라 이 fork(`hellower/lancedb`)의 고정 커밋으로 빌드합니다.**
+> `hellower/goosedb-lancedb-go`의 `rust/Cargo.toml`에 있는 `[patch]`가 공식 `v0.39.0` 태그를 `hellower/lancedb@30d3926`으로 바꿔치기합니다.
+> 이 커밋은 **`v0.39.0` 태그에 수정 커밋 하나만 얹은 것**이고, 나머지 코드는 upstream 태그와 같습니다.
+>
+> - **왜 upstream을 그대로 안 쓰나:** upstream 태그(`v0.38.0`, `v0.39.0`)는 `remote` feature 없이
+>   빌드하면 **컴파일이 되지 않습니다**. `job.rs`의 `TerminalResult::decode`가 `remote` 전용 variant인
+>   `Error::Http`를 조건 없이 사용하기 때문입니다([lancedb/lancedb#4096](https://github.com/lancedb/lancedb/issues/4096)).
+>   `hellower/goosedb-lancedb-go`는 `default-features = false`로, `remote` 없이 빌드하므로 매번 이 오류가 납니다.
+> - **upstream CI가 못 잡는 이유:** `python/`과 `nodejs/` 바인딩이 `remote`를 기본으로 켜기 때문에,
+>   워크스페이스 전체 빌드에서는 feature unification으로 `lancedb`도 `remote`가 켜진 채 컴파일됩니다.
+>   `lancedb` 패키지만 `--no-default-features`로 빌드해야 드러납니다.
+> - **upstream 수정 PR은 머지 없이 닫혔습니다:** [lancedb/lancedb#4100](https://github.com/lancedb/lancedb/pull/4100)은
+>   2026-09-03 LanceDB 메인테이너(`wjones127`)의 승인을 받았지만, **2026-09-19 04:00 UTC에 `hellower` 계정으로
+>   머지 없이 닫혔습니다**. #4096도 같은 시각에 닫혔고, 닫은 이유를 적은 코멘트는 없습니다.
+> - **upstream `main`과 `v0.40.0-beta.3`도 아직 고쳐지지 않았습니다.** `v0.40.0`으로 올릴 때도 fork
+>   브랜치를 다시 만들어야 할 가능성이 높습니다.
+> - **`[patch]` 제거 조건:** upstream 태그가 `[patch]` 없이 컴파일되면 지웁니다. #4100이 닫혔으므로 그 머지를
+>   기다리는 방식으로는 제거 시점이 오지 않습니다. #4100을 다시 열면 승인이 남아 있어 upstream 수정까지
+>   가장 가까운 경로입니다.
+>
+> **수정은 이 fork의 `main`이 아니라 태그별 브랜치에 있습니다.**
+>
+> | LanceDB 태그 | 브랜치 | 커밋 | 부모(태그 커밋) |
+> | --- | --- | --- | --- |
+> | `v0.39.0` (현재 사용) | [`fix/v0.39.0-job-remote-gate`](https://github.com/hellower/lancedb/tree/fix/v0.39.0-job-remote-gate) | `30d3926` | `0c33b27` |
+> | `v0.38.0` | [`fix/v0.38.0-job-remote-gate`](https://github.com/hellower/lancedb/tree/fix/v0.38.0-job-remote-gate) | `9437133` | `8c68e0c` |
+>
+> 기술적 세부 내용과 LanceDB를 올릴 때 패치를 다시 만드는 절차는 `hellower/goosedb-lancedb-go`(비공개)
+> README의 "upstream 대비 커스텀 패치" 섹션에 있습니다.
