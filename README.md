@@ -12,14 +12,14 @@
 > - **upstream CI가 못 잡는 이유:** `python/`과 `nodejs/` 바인딩이 `remote`를 기본으로 켜기 때문에,
 >   워크스페이스 전체 빌드에서는 feature unification으로 `lancedb`도 `remote`가 켜진 채 컴파일됩니다.
 >   `lancedb` 패키지만 `--no-default-features`로 빌드해야 드러납니다.
-> - **upstream 수정 PR은 머지 없이 닫혔습니다:** [lancedb/lancedb#4100](https://github.com/lancedb/lancedb/pull/4100)은
->   2026-09-03 LanceDB 메인테이너(`wjones127`)의 승인을 받았지만, **2026-09-19 04:00 UTC에 `hellower` 계정으로
->   머지 없이 닫혔습니다**. #4096도 같은 시각에 닫혔고, 닫은 이유를 적은 코멘트는 없습니다.
+> - **upstream 수정은 [lancedb/lancedb#4103](https://github.com/lancedb/lancedb/pull/4103)에서 진행 중입니다:**
+>   우리가 낸 [#4100](https://github.com/lancedb/lancedb/pull/4100)은 2026-09-03 LanceDB 메인테이너(`wjones127`)의
+>   승인을 받았지만, **같은 수정인 #4103과 중복이라 2026-09-19에 우리가 닫았습니다**(#4096도 함께 닫음).
+>   **#4103은 2026-09-19 현재 열려 있고 아직 승인 전(REVIEW_REQUIRED)입니다.**
 > - **upstream `main`과 `v0.40.0-beta.3`도 아직 고쳐지지 않았습니다.** `v0.40.0`으로 올릴 때도 fork
 >   브랜치를 다시 만들어야 할 가능성이 높습니다.
-> - **`[patch]` 제거 조건:** upstream 태그가 `[patch]` 없이 컴파일되면 지웁니다. #4100이 닫혔으므로 그 머지를
->   기다리는 방식으로는 제거 시점이 오지 않습니다. #4100을 다시 열면 승인이 남아 있어 upstream 수정까지
->   가장 가까운 경로입니다.
+> - **`[patch]` 제거 조건:** #4103이 머지되고 그 뒤의 LanceDB 태그가 나와서, 그 태그가 `[patch]` 없이
+>   컴파일되면 지웁니다.
 >
 > **수정은 이 fork의 `main`이 아니라 태그별 브랜치에 있습니다.**
 >
